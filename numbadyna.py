@@ -7,10 +7,10 @@ import time
 rd.seed(1)
 
 #Nombre de corps
-nombrePlan=200
+nombrePlan=100
 
 #Durée de la simulation
-temps=30
+temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
 dt=0.01
@@ -23,7 +23,7 @@ DispEne=True
 DispPression=False
 DispMomentum=False
 Animation=True
-SaveAnimation=True
+SaveAnimation=False
 
 
 #Définition des tableaux contenant les différentes données
@@ -44,11 +44,11 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
 TailleInitiale=3
-VitesseInitiale=0.1
-EcartType=0
+VitesseInitiale=0.5
+EcartType=0.03
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=4
+TailleBoite=5
 
 #Generation des conditions initiales
 AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,TPosx,TPosy,TPosz,TVitx,TVity,TVitz,nombrePlan)

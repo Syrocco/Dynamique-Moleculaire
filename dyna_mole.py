@@ -6,10 +6,10 @@ from Ncorps import *
 rd.seed(1)
 
 #Nombre de corps
-nombrePlan=400
+nombrePlan=100
 
 #Durée de la simulation
-temps=8
+temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
 dt=0.01
@@ -22,7 +22,7 @@ DispEne=True
 DispPression=False
 DispMomentum=False
 Animation=True
-SaveAnimation=True
+SaveAnimation=False
 
 
 
@@ -43,29 +43,24 @@ Ecin=np.zeros(N)
 Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur absolue puisqu'elle ne sert qu'à trouver une pression
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=5
-VitesseInitiale=0.6
-EcartType=0
+TailleInitiale=3
+VitesseInitiale=0.5
+EcartType=0.03
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=6
-
-cube_definition = [
-    (-TailleBoite,-TailleBoite,-TailleBoite), (TailleBoite,-TailleBoite,-TailleBoite), (-TailleBoite,TailleBoite,-TailleBoite), (-TailleBoite,-TailleBoite,TailleBoite)
-]
+TailleBoite=5
 
 #Generation des conditions initiales
 AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,TPosx,TPosy,TPosz,TVitx,TVity,TVitz,nombrePlan)
-
-
-
 
 ############################################################
 ###-----------------Programme Principale-----------------###    
 ############################################################   
             
+start = time.time()           
 ProgrammePrincipal(TPosx,TPosy,TPosz,TVitx,TVity,TVitz,Epot,Ecin,Moment,TailleBoite,N,nombrePlan,dt)
-    
+end = time.time() 
+print(end-start)    
 
 ttab2,Tpress,pression=Pression(Moment,TailleBoite,N,100,dt)
 

@@ -11,44 +11,7 @@ from numba import jit
 
 ################################################################
 ###-----------------Définition des fonctions-----------------###    
-################################################################ 
-"""
-def plot_cube(cube_definition,axes):  #La fonction volée
-    cube_definition_array = [
-        np.array(list(item))
-        for item in cube_definition
-    ]
-
-    points = []
-    points += cube_definition_array
-    vectors = [
-        cube_definition_array[1] - cube_definition_array[0],
-        cube_definition_array[2] - cube_definition_array[0],
-        cube_definition_array[3] - cube_definition_array[0]
-    ]
-
-    points += [cube_definition_array[0] + vectors[0] + vectors[1]]
-    points += [cube_definition_array[0] + vectors[0] + vectors[2]]
-    points += [cube_definition_array[0] + vectors[1] + vectors[2]]
-    points += [cube_definition_array[0] + vectors[0] + vectors[1] + vectors[2]]
-
-    points = np.array(points)
-
-    edges = [
-        [points[0], points[3], points[5], points[1]],
-        [points[1], points[5], points[7], points[4]],
-        [points[4], points[2], points[6], points[7]],
-        [points[2], points[6], points[3], points[0]],
-        [points[0], points[2], points[4], points[1]],
-        [points[3], points[6], points[7], points[5]]
-    ]
-
-
-    faces = Poly3DCollection(edges, linewidths=1, edgecolors='k')
-    faces.set_facecolor((0,0,1,0.1))
-
-    axes.add_collection3d(faces)
-"""    
+################################################################  
 def cube(l,axes):
     points = np.array([[-l, -l, -l],
                       [l, -l, -l ],
@@ -142,7 +105,7 @@ def AttributionInitiale(rayon,Vitesse,Ecart,PositionX,PositionY,PositionZ,Vitess
 def CalculAcceleration(PositionX,PositionY,PositionZ,Corps,CorpsAutre,cpt):
 	d=distance(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre],PositionZ[cpt-1,Corps],PositionZ[cpt-1,CorpsAutre])
 	a=((12/d**13)-(6/d**7))/1
-	return a*(PositionX[cpt-1,Corps]-PositionX[cpt-1,CorpsAutre])/d, a*(PositionY[cpt-1,Corps]-PositionY[cpt-1,CorpsAutre])/d,a*(PositionZ[cpt-1,Corps]-PositionZ[cpt-1,CorpsAutre])/d-0.01, d 
+	return a*(PositionX[cpt-1,Corps]-PositionX[cpt-1,CorpsAutre])/d, a*(PositionY[cpt-1,Corps]-PositionY[cpt-1,CorpsAutre])/d,a*(PositionZ[cpt-1,Corps]-PositionZ[cpt-1,CorpsAutre])/d-0.02, d 
 
 #Calcul de la position et de la vitesse avec la méthode d'euler semi-explicite
 @jit(nopython=True,cache=True)     
