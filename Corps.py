@@ -37,11 +37,8 @@ def cube(l,axes):
 def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes,l):
     i=i*10
     axes.clear()
-    #axes.plot(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
-    if i<300:
-        axes.plot(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"ro")
-    else:
-        axes.plot(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"bo")    
+    axes.plot(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
+    axes.plot(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"bo")    
     
     cube(l,axes)
     axes.set_xlim3d([-demiLongueur, demiLongueur])
@@ -214,11 +211,27 @@ def Temperature(EnergieCinetique,nombreDiteration,nombre):
         eneCinMoyenne+=2*EnergieCinetique[i]/nombreDiteration
     return eneCinMoyenne/(1.5*kb*nombre)
 
+def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration):
+    N=10
+    EnergieVoulue=10
+    coeff=1.001
+    if i%N==0 and i>=2*N and i<5*nombreDiteration/10:
+        EnergieMoyenne=np.mean(EnergieCinetique[i-N:i])
+        if EnergieVoulue-EnergieMoyenne>0.01:
+            for n in range(nombre):
+                VitesseX[i,n]=VitesseX[i,n]*coeff
+                VitesseY[i,n]=VitesseY[i,n]*coeff
+                VitesseZ[i,n]=VitesseZ[i,n]*coeff
+        elif EnergieVoulue-EnergieMoyenne<0.01:
+            for n in range(nombre):
+                VitesseX[i,n]=VitesseX[i,n]/coeff
+                VitesseY[i,n]=VitesseY[i,n]/coeff
+                VitesseZ[i,n]=VitesseZ[i,n]/coeff
 
-def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,QuantDeMouv,demiLongueur,nombreDiteration,nombre,dt,EnergieVoulue=0,coeff=1.001):
+def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,QuantDeMouv,demiLongueur,nombreDiteration,nombre,dt):
     print("Début des calculs")
     for i in range(1,nombreDiteration):
-        #print(i,"/",nombreDiteration)
+        print(i,"/",nombreDiteration)
         for Corps in range(nombre):
             ax=0
             ay=0
@@ -233,18 +246,6 @@ def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,
             CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,ax,ay,az,Corps,i,dt)
             modif(DansBoite(demiLongueur,PositionX,PositionY,PositionZ,Corps, i),demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,QuantDeMouv,Corps,i)    #A mettre en commentaire pour desactiver les collisions
             EnergieCinetique[i]=EnergieCinetique[i]+Ecinetique(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps])
-
-            N=10
-            if i%N==0 and i>=N and 300<i<10000:
-
-                EnergieMoyenne=np.mean(EnergieCinetique[i-N:i])
-                if EnergieVoulue-EnergieMoyenne>0.01:
-                    for n in range(nombre):
-                        VitesseX[i,n]=VitesseX[i,n]*coeff
-                        VitesseY[i,n]=VitesseY[i,n]*coeff
-                        VitesseZ[i,n]=VitesseZ[i,n]*coeff
-                elif EnergieVoulue-EnergieMoyenne<0.01:
-                    for n in range(nombre):
-                        VitesseX[i,n]=VitesseX[i,n]/coeff
-                        VitesseY[i,n]=VitesseY[i,n]/coeff
-                        VitesseZ[i,n]=VitesseZ[i,n]/coeff 
+            #TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration)
+            
+             
