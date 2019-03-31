@@ -1,3 +1,4 @@
+
 from Corps import *
 import time
 
@@ -7,10 +8,10 @@ import time
 
 
 #Nombre de corps
-nombrePlan=50
+nombrePlan=500
 
 #Durée de la simulation
-temps=1
+temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
 dt=0.0001
@@ -30,38 +31,31 @@ SaveAnimation=False
 #Définition des tableaux contenant les différentes données
 ttab=np.arange(dt,temps,dt)
 
-#Position et vitesse
-TPosx=np.zeros((N,nombrePlan))
-TPosy=np.zeros((N,nombrePlan))
-TPosz=np.zeros((N,nombrePlan))
-TVitx=np.zeros((N,nombrePlan))
-TVity=np.zeros((N,nombrePlan))
-TVitz=np.zeros((N,nombrePlan))
-
 #Energie et quantité de mouvement
 Epot=np.zeros(N)
 Ecin=np.zeros(N)
 Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur absolue puisqu'elle ne sert qu'à trouver une pression
 
+
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=1
-VitesseInitiale=1
-EcartType=0.03
+TailleInitiale=4
+VitesseInitiale=0
+EcartType=0
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=1.1
+TailleBoite=7.5
 
 #Generation des conditions initiales
-AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,TPosx,TPosy,TPosz,TVitx,TVity,TVitz,nombrePlan,methode="Cube")
-
+nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Solide2D")
 
 
 ############################################################
 ###-----------------Programme Principale-----------------###    
-############################################################   
-          
+############################################################  
+t1=time.time()       
 ProgrammePrincipal(TPosx,TPosy,TPosz,TVitx,TVity,TVitz,Epot,Ecin,Moment,TailleBoite,N,nombrePlan,dt)
-
+t2=time.time()
+print(t2-t1)
 
 ttab2,Tpress,pression=Pression(Moment,TailleBoite,N,100,dt)
 
@@ -70,6 +64,19 @@ temperature=Temperature(Ecin,N,nombrePlan)
 
 #Calcul de l'énergie totale     
 Etot=Epot[1:-1]+Ecin[1:-1]
+
+TVit = np.zeros((nombrePlan))
+for i in range(nombrePlan):
+    TVit[i] = norme(np.array([TVitx[-1,i], TVity[-1,i], TVitz[-1,i]]))
+tabx,distrib=getProbabilityDensityMaxwell(temperature, np.mean(TVit))
+#print(distrib)
+plt.figure()
+plt.hist(TVit, bins=30, density=True)
+plt.figure()
+plt.plot(tabx,distrib)
+
+
+plt.show()
 
 
         
@@ -105,7 +112,7 @@ if DispMomentum:
 if Animation: 
     fig = plt.figure()
     axes = p3.Axes3D(fig)
-    ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleBoite,axes,TailleBoite), interval=100, save_count=int(N/10))
+    ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleBoite,axes), interval=100, save_count=int(N/10))
     if SaveAnimation:
         ani.save('./animation.mp4', fps=20,dpi=150)
 else:

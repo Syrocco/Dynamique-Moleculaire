@@ -9,6 +9,7 @@ from numba import jit
 
 
 
+
 ################################################################
 ###-----------------Définition des fonctions-----------------###    
 ################################################################  
@@ -34,28 +35,45 @@ def cube(l,axes):
     axes.scatter3D(points[:, 0], points[:, 1], points[:, 2])    
 
 
-def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes,l):
+
+def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes):
     i=i*10
     axes.clear()
     axes.plot(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
     axes.plot(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"bo")    
     
-    cube(l,axes)
+    cube(demiLongueur,axes)
     axes.set_xlim3d([-demiLongueur, demiLongueur])
 
     axes.set_ylim3d([-demiLongueur, demiLongueur])
 
     axes.set_zlim3d([-demiLongueur, demiLongueur])
 
+
+
+def getProbabilityDensityMaxwell(temp, vitMoy):
+    vit=np.linspace(0, 3 * vitMoy, 1000)
+    return vit,1/(2*np.pi*temp)**(3./2.) * np.exp(-(vit-vitMoy)**2/(2*temp))
+    #return vit, 1/(np.sqrt(2*np.pi*temp)) * np.exp(-(vit-vitMoy)**2/(2*temp)) 
+
+
+
 def norme(Vec3D):
     return np.sqrt(normeCarree(Vec3D))
+
+
 
 def normeCarree(Vec3D):
     return Vec3D[0]**2+Vec3D[1]**2+Vec3D[2]**2
 
+
+
 #Avec la vitesse/température T et l'écart type E, la fonction renvoie UNE vitesse prise dans une gaussienne
-def GenVitesse(T,E):
+def GenVitesse(T,E):   
     vit_xyz=np.zeros(3)
+    if (T == 0 and E == 0):
+        return np.array(vit_xyz)
+    
     for i in range(3):
         vit_xyz[i]=rd.random()
     NormEtVit=norme(vit_xyz)/rd.normal(T,E)   #constante permettant de normer vit_xyz pour ensuite lui donner une norme prise au hasard dans une gaussienne
@@ -72,6 +90,7 @@ def GenVitesse(T,E):
 #La fonction renvoie la distribution des corps selon la demi-longueur envoyée
 def GenPosition(nombre,rayon,methode):
     T=[]
+
     if methode=="Cube":
         Ecart=(2*rayon)/((nombre)**(1/3))
         for i in np.arange(-rayon,rayon,Ecart):
@@ -81,29 +100,82 @@ def GenPosition(nombre,rayon,methode):
         if len(T)<nombre:
             print("L'attribution est mauvaise")
             return "L'attribution est mauvaise"
-        rd.seed(1)
+        #rd.seed(1)
         return np.array(T[:nombre])
 
 
     if methode=="Random":
         for i in range(nombre):
             T.append(rd.random(3)*2*rayon-rayon)
-    return np.array(T)
+        return np.array(T)
+
+    if methode=="Solide2D":
+
+        for i in np.arange(-rayon,rayon,2**(1/6)):
+                for j in np.arange(-rayon,rayon,2**(1/6)):
+                    ##for z in np.arange(-rayon,rayon,2**(1/6)):
+                        T.append([i,j,0])
+
+        return np.array(T), len(T)
+    
+    if methode=="Solide3D":
+
+        for i in np.arange(-rayon,rayon,2**(1/6)):
+                for j in np.arange(-rayon,rayon,2**(1/6)):
+                    for z in np.arange(-rayon,rayon,2**(1/6)):
+                        T.append([i,j,z])
+
+        return np.array(T), len(T)
+    
+    if methode=="Megalaxie":
+        while(len(T)!=nombre):
+            x=rd.random(2) * (2*rayon)-rayon
+            if (1 <= np.norm(x) <= rayon):
+                T.append([x[0],x[1],0])
+        return np.array(T)
 
 
-#La fonction attribue les positions et vitesses initiales aux corps                                                
-def AttributionInitiale(rayon,Vitesse,Ecart,PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,nombre,methode="Cube"):
-    particule=GenPosition(nombre, rayon, methode)
+#La fonction attribue les positions et vitesses initiales aux corps 
+                                               
+def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube"):
+    if methode=="Solide3D" or methode=="Solide2D":
+        particule, nombre=GenPosition(nombre, rayon, methode)
+    else:
+        particule=GenPosition(nombre, rayon, methode)
+    
+    #Position et vitesse
+    PositionX=np.zeros((N,nombre))
+    PositionY=np.zeros((N,nombre))
+    PositionZ=np.zeros((N,nombre))
+    VitesseX=np.zeros((N,nombre))
+    VitesseY=np.zeros((N,nombre))
+    VitesseZ=np.zeros((N,nombre))
+
     for i in range(nombre):
         PositionX[0,i]=particule[i,0]
         PositionY[0,i]=particule[i,1]
         PositionZ[0,i]=particule[i,2]
+        
+    if methode!="Megalaxie":
+        for i in range(nombre):
+            A=GenVitesse(Vitesse,Ecart)
+            VitesseX[0,i]=A[0]
+            VitesseY[0,i]=A[1]
+            VitesseZ[0,i]=A[2]
+        
+    else:                    #En construction
+        for i in range(nombre):
+            vector=np.array([PositionX[0,i],PositionY[0,i],PositionZ[0,i]])
+            direct=np.cross(vector, np.array([0, 0, 1]))
+            VitesseX[0,i]=A[0]
+            VitesseY[0,i]=A[1]
+            VitesseZ[0,i]=A[2]*direct * np.sqrt(60)    
+        
+        
+    return nombre,PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ
 
-    for i in range(nombre):
-        A=GenVitesse(Vitesse,Ecart)
-        VitesseX[0,i]=A[0]
-        VitesseY[0,i]=A[1]
-        VitesseZ[0,i]=A[2]
+    
+        
         
 
 
@@ -111,8 +183,10 @@ def AttributionInitiale(rayon,Vitesse,Ecart,PositionX,PositionY,PositionZ,Vitess
 @jit(nopython=True,cache=True)        
 def CalculAcceleration(PositionX,PositionY,PositionZ,Corps,CorpsAutre,cpt):
 	d=distance(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre],PositionZ[cpt-1,Corps],PositionZ[cpt-1,CorpsAutre])
-	a=((12/d**13)-(6/d**7))/1
+	a=((12/d**13)-(6/d**7))
 	return a*(PositionX[cpt-1,Corps]-PositionX[cpt-1,CorpsAutre])/d, a*(PositionY[cpt-1,Corps]-PositionY[cpt-1,CorpsAutre])/d,a*(PositionZ[cpt-1,Corps]-PositionZ[cpt-1,CorpsAutre])/d, d 
+
+
 
 #Calcul de la position et de la vitesse avec la méthode d'euler semi-explicite
 @jit(nopython=True,cache=True)     
@@ -123,11 +197,13 @@ def CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
     PositionX[cpt,Corps]=PositionX[cpt-1,Corps]+dt*VitesseX[cpt,Corps]
     PositionY[cpt,Corps]=PositionY[cpt-1,Corps]+dt*VitesseY[cpt,Corps]
     PositionZ[cpt,Corps]=PositionZ[cpt-1,Corps]+dt*VitesseZ[cpt,Corps] 
+
+ 
     
     
-#Teste si la particule à l'étape i se trouve dans la boite ou non                
-def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):
-        
+#Teste si la particule à l'étape i se trouve dans la boite ou non 
+@jit(nopython=True,cache=True)                
+def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):       
     #r la demi longueur du cube
     if PositionX[cpt,Corps]<-demiLongueur:
         return "x-"
@@ -142,6 +218,8 @@ def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):
     if PositionZ[cpt,Corps]>demiLongueur:
         return "z+"
     return("no")
+
+
 
 #Modifie, selon le resultat de la fonction DansBoite(), la vitesse et la position de la particule à l'étape i pour simuler une collision, enregistre aussi la quantité de mouvement transmise aux parois
 @jit(nopython=True,cache=True) 
@@ -177,19 +255,25 @@ def modif(info,demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
         PositionZ[cpt,Corps]=PositionZ[cpt,Corps] + 2*(demiLongueur-PositionZ[cpt,Corps])
         QuantDeMouv[cpt]=QuantDeMouv[cpt]+abs(2*VitesseZ[cpt,Corps])
         VitesseZ[cpt,Corps]=-VitesseZ[cpt,Corps]
+
         
 @jit(nopython=True,cache=True) 
 def distance(PositionX1,PositionX2,PositionY1,PositionY2,PositionZ1,PositionZ2):
 	return np.sqrt((PositionX1-PositionX2)**2+(PositionY1-PositionY2)**2+(PositionZ1-PositionZ2)**2)
 
+
 @jit(nopython=True,cache=True) 
 def Ecinetique(VitesseX,VitesseY,VitesseZ):
 	return 0.5*1*(VitesseX**2+VitesseY**2+VitesseZ**2)
 
+
+@jit(nopython=True,cache=True) 
 def Epotentielle(distance):
 	return 0.5*((1/distance**12)-(1/distance**6))   #Multiplication par 0.5 parceque je compte deux fois l'energie: pour un couple {i,j} de particule, je compte Eij et Eji, donc il faut diviser par deux
 
-#Calcul de la pression exercée sur les parois 
+
+
+#Calcul de la pression exercée sur les parois    
 def Pression(QuantDeMouv,demiLongueur,nombreDiteration,pas,dt):
     aireBoite=6*(2*demiLongueur)**2
     nombreDivision=int(nombreDiteration/pas)
@@ -203,6 +287,7 @@ def Pression(QuantDeMouv,demiLongueur,nombreDiteration,pas,dt):
     pressionMoyenne=np.mean(pression[int(len(pression)*9/10):])
     return ttab2,pression,pressionMoyenne
 
+
 #Calcul temperature
 def Temperature(EnergieCinetique,nombreDiteration,nombre):
     kb=1
@@ -211,6 +296,8 @@ def Temperature(EnergieCinetique,nombreDiteration,nombre):
         eneCinMoyenne+=2*EnergieCinetique[i]/nombreDiteration
     return eneCinMoyenne/(1.5*kb*nombre)
 
+
+@jit(nopython=True,cache=True) 
 def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration):
     N=10
     EnergieVoulue=10
@@ -227,7 +314,10 @@ def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiterat
                 VitesseX[i,n]=VitesseX[i,n]/coeff
                 VitesseY[i,n]=VitesseY[i,n]/coeff
                 VitesseZ[i,n]=VitesseZ[i,n]/coeff
-
+                
+               
+                
+@jit(nopython=True,cache=True) 
 def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,QuantDeMouv,demiLongueur,nombreDiteration,nombre,dt):
     print("Début des calculs")
     for i in range(1,nombreDiteration):
@@ -248,4 +338,5 @@ def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,
             EnergieCinetique[i]=EnergieCinetique[i]+Ecinetique(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps])
             #TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration)
             
-             
+            
+        
