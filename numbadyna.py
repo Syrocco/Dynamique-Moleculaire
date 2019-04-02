@@ -8,13 +8,13 @@ import time
 
 
 #Nombre de corps
-nombrePlan=1000
+nombrePlan=500
 
 #Durée de la simulation
-temps=0.1
+temps=15
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.05
+dt=0.01
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -23,8 +23,8 @@ N=int(temps/dt)
 DispEne=True
 DispPression=True
 DispMomentum=True
-Animation=False
-SaveAnimation=False
+Animation=True
+SaveAnimation=True
 
 
 
@@ -38,15 +38,15 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=15
+TailleInitiale=3
 VitesseInitiale=0
 EcartType=0
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=20
+TailleBoite=3.5
 
 #Generation des conditions initiales
-nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Megalaxie")
+nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Solide3D")
 
 
 ############################################################
@@ -76,6 +76,7 @@ plt.figure()
 plt.plot(tabx,distrib)
 
 
+plt.show()
 
 
         
