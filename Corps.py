@@ -4,7 +4,7 @@ import numpy.random as rd
 import mpl_toolkits.mplot3d.axes3d as p3
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import matplotlib.animation as animation
-#from numba import jit
+from numba import jit
 
 
 
@@ -134,14 +134,14 @@ def GenPosition(nombre,rayon,methode):
     if methode=="Megalaxie":
         while(len(T)!=nombre):
             x=rd.random(2) * (2*rayon)-rayon
-            if (1 <= norme2D(x) <= rayon):
+            if (3 <= norme2D(x) <= rayon):
                 T.append([x[0],x[1],0])
         return np.array(T)
 
 
 #La fonction attribue les positions et vitesses initiales aux corps 
                                                
-def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=1):
+def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=10**7):
     if methode=="Solide3D" or methode=="Solide2D":
         particule, nombre=GenPosition(nombre, rayon, methode)
     else:
@@ -161,17 +161,18 @@ def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=1)
         PositionZ[0,i]=particule[i,2]
         
     if methode!="Megalaxie":
-        for i in range(nombre):
+        for i in range(1,nombre):
             A=GenVitesse(Vitesse,Ecart)
             VitesseX[0,i]=A[0]
             VitesseY[0,i]=A[1]
             VitesseZ[0,i]=A[2]
         
-    else:                    #En construction
-        for i in range(nombre):
-            vector=np.array([PositionX[0,i],PositionY[0,i],PositionZ[0,i]])
+    else:
+        for i in range(1,nombre):
+            vector=np.array([PositionX[0,i],PositionY[0,i],0])
             Vnormal=np.cross(vector, np.array([0, 0, 1]))
             Vnormal=Vnormal/norme(Vnormal)
+            print(vector,Vnormal)
             VTot=np.sqrt((G*Masse)/norme(vector))
             VitesseX[0,i]=Vnormal[0]*VTot
             VitesseY[0,i]=Vnormal[1]*VTot
@@ -186,16 +187,23 @@ def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=1)
 
 
 #Calcul de l'acceleration
-#@jit(nopython=True,cache=True)        
+@jit(nopython=True,cache=True)        
 def CalculAcceleration(PositionX,PositionY,PositionZ,Corps,CorpsAutre,cpt):
 	d=distance(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre],PositionZ[cpt-1,Corps],PositionZ[cpt-1,CorpsAutre])
-	a=((12/d**13)-(6/d**7))*0
+	a=((12/d**13)-(6/d**7))
 	return a*(PositionX[cpt-1,Corps]-PositionX[cpt-1,CorpsAutre])/d, a*(PositionY[cpt-1,Corps]-PositionY[cpt-1,CorpsAutre])/d,a*(PositionZ[cpt-1,Corps]-PositionZ[cpt-1,CorpsAutre])/d, d 
 
+@jit(nopython=True,cache=True)  
+def CalculAccelerationGravite(PositionX,PositionY,PositionZ,Tmasse,Corps,CorpsAutre,cpt):
+    G=1
+    d=distance(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre],PositionZ[cpt-1,Corps],PositionZ[cpt-1,CorpsAutre])
+    a=-G*Tmasse[CorpsAutre]/d**2*0
+    return a*(PositionX[cpt-1,Corps]-PositionX[cpt-1,CorpsAutre])/d, a*(PositionY[cpt-1,Corps]-PositionY[cpt-1,CorpsAutre])/d,a*(PositionZ[cpt-1,Corps]-PositionZ[cpt-1,CorpsAutre])/d, d 
+    
 
 
 #Calcul de la position et de la vitesse avec la méthode d'euler semi-explicite
-#@jit(nopython=True,cache=True)     
+@jit(nopython=True,cache=True)     
 def CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,AccelerationX,AccelerationY,AccelerationZ,Corps,cpt,dt):
     VitesseX[cpt,Corps]=VitesseX[cpt-1,Corps]+dt*AccelerationX
     VitesseY[cpt,Corps]=VitesseY[cpt-1,Corps]+dt*AccelerationY	
@@ -208,7 +216,7 @@ def CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
     
     
 #Teste si la particule à l'étape i se trouve dans la boite ou non 
-#@jit(nopython=True,cache=True)                
+@jit(nopython=True,cache=True)                
 def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):       
     #r la demi longueur du cube
     if PositionX[cpt,Corps]<-demiLongueur:
@@ -228,7 +236,7 @@ def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):
 
 
 #Modifie, selon le resultat de la fonction DansBoite(), la vitesse et la position de la particule à l'étape i pour simuler une collision, enregistre aussi la quantité de mouvement transmise aux parois
-#@jit(nopython=True,cache=True) 
+@jit(nopython=True,cache=True) 
 def modif(info,demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,QuantDeMouv,Corps,cpt):
     if info=="no":
         return()
@@ -263,19 +271,28 @@ def modif(info,demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
         VitesseZ[cpt,Corps]=-VitesseZ[cpt,Corps]
 
         
-#@jit(nopython=True,cache=True) 
+@jit(nopython=True,cache=True) 
 def distance(PositionX1,PositionX2,PositionY1,PositionY2,PositionZ1,PositionZ2):
 	return np.sqrt((PositionX1-PositionX2)**2+(PositionY1-PositionY2)**2+(PositionZ1-PositionZ2)**2)
 
 
-#@jit(nopython=True,cache=True) 
+@jit(nopython=True,cache=True) 
 def Ecinetique(VitesseX,VitesseY,VitesseZ):
 	return 0.5*1*(VitesseX**2+VitesseY**2+VitesseZ**2)
 
 
-#@jit(nopython=True,cache=True) 
+@jit(nopython=True,cache=True) 
 def Epotentielle(distance):
-	return 0.5*((1/distance**12)-(1/distance**6))   #Multiplication par 0.5 parceque je compte deux fois l'energie: pour un couple {i,j} de particule, je compte Eij et Eji, donc il faut diviser par deux
+	return 0.5*((1/distance**12)-(1/distance**6))   
+
+@jit(nopython=True,cache=True) 
+def EpotentielleGravite(distance,m1,m2):
+    G=1
+    return -0.5*G*m1*m2/distance
+
+@jit(nopython=True,cache=True) 
+def EcinetiqueGravite(VitesseX,VitesseY,VitesseZ,m):
+	return 0.5*m*(VitesseX**2+VitesseY**2+VitesseZ**2)
 
 
 
@@ -323,7 +340,7 @@ def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiterat
                 
                
                 
-#@jit(nopython=True,cache=True) 
+@jit(nopython=True,cache=True) 
 def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,QuantDeMouv,demiLongueur,nombreDiteration,nombre,dt):
     print("Début des calculs")
     for i in range(1,nombreDiteration):
@@ -344,5 +361,23 @@ def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,
             EnergieCinetique[i]=EnergieCinetique[i]+Ecinetique(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps])
             #TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration)
             
+@jit(nopython=True,cache=True) 
+def ProgrammePrincipalGravite(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,Tmasse,nombreDiteration,nombre,dt):
+    print("Début des calculs")
+    for i in range(1,nombreDiteration):
+        print(i,"/",nombreDiteration)
+        for Corps in range(nombre):
+            ax=0
+            ay=0
+            az=0
+            for CorpsAutre in range(nombre):
+               if CorpsAutre!=Corps:      
+                   a=CalculAccelerationGravite(PositionX,PositionY,PositionZ,Tmasse,Corps,CorpsAutre,i)
+                   ax+=a[0]
+                   ay+=a[1]
+                   az+=a[2]
+                   EnergiePotentielle[i-1]=EnergiePotentielle[i-1]+EpotentielleGravite(a[3],Tmasse[Corps],Tmasse[CorpsAutre])
+            CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,ax,ay,az,Corps,i,dt)
+            EnergieCinetique[i]=EnergieCinetique[i]+EcinetiqueGravite(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps],Tmasse[Corps])          
             
-        
+            
