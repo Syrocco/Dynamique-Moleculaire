@@ -8,10 +8,10 @@ import time
 
 
 #Nombre de corps
-nombrePlan=500
+nombrePlan=20
 
 #Durée de la simulation
-temps=15
+temps=50
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
 dt=0.01
@@ -38,12 +38,12 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=3
+TailleInitiale=2
 VitesseInitiale=0
 EcartType=0
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=3.5
+TailleBoite=4
 
 #Generation des conditions initiales
 nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Solide3D")
@@ -62,6 +62,7 @@ ttab2,Tpress,pression=Pression(Moment,TailleBoite,N,100,dt)
 temperature=Temperature(Ecin,N,nombrePlan)
 
 
+
 #Calcul de l'énergie totale     
 Etot=Epot[1:-1]+Ecin[1:-1]
 
@@ -75,8 +76,6 @@ plt.hist(TVit, bins=30, density=True)
 plt.figure()
 plt.plot(tabx,distrib)
 
-
-plt.show()
 
 
         
@@ -114,13 +113,16 @@ if Animation:
     axes = p3.Axes3D(fig)
     ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleBoite,axes), interval=100, save_count=int(N/10))
     if SaveAnimation:
-        ani.save('./animation.mp4', fps=20,dpi=150)
+        ani.save('./animationTrash.mp4', fps=20,dpi=80)
 else:
     fig = plt.figure()
     axes = p3.Axes3D(fig)
     cube(TailleBoite,axes)
     for i in range(nombrePlan):
-        axes.plot(TPosx[:,i],TPosy[:,i],TPosz[:,i])
+        axes.plot(TPosx[:,i],TPosy[:,i],TPosz[:,i],"o")
+
+
+
 
 
 plt.show()

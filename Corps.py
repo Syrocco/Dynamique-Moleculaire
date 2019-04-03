@@ -13,7 +13,7 @@ import matplotlib.animation as animation
 ################################################################
 ###-----------------Définition des fonctions-----------------###    
 ################################################################  
-def cube(l,axes):
+def cube(l,axes):     #fonctions prise ici: https://stackoverflow.com/questions/33540109/plot-surfaces-on-a-cube/33542678
     points = np.array([[-l, -l, -l],
                       [l, -l, -l ],
                       [l, l, -l],
@@ -26,12 +26,12 @@ def cube(l,axes):
     r = [-l,l]
     X, Y = np.meshgrid(r, r)    
     one =l* np.ones(4).reshape(2, 2)
-    axes.plot_wireframe(X,Y,one, alpha=0.5)
-    axes.plot_wireframe(X,Y,-one, alpha=0.5)
-    axes.plot_wireframe(X,-one,Y, alpha=0.5)
-    axes.plot_wireframe(X,one,Y, alpha=0.5)
-    axes.plot_wireframe(one,X,Y, alpha=0.5)
-    axes.plot_wireframe(-one,X,Y, alpha=0.5)
+    axes.plot_wireframe(X,Y,one)
+    axes.plot_wireframe(X,Y,-one)
+    axes.plot_wireframe(X,-one,Y)
+    axes.plot_wireframe(X,one,Y)
+    axes.plot_wireframe(one,X,Y)
+    axes.plot_wireframe(-one,X,Y)
     axes.scatter3D(points[:, 0], points[:, 1], points[:, 2])    
 
 
@@ -39,6 +39,7 @@ def cube(l,axes):
 def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes):
     i=i*10
     axes.clear()
+    axes.view_init(90, 90)
     axes.plot(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
     axes.plot(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"bo")    
     
@@ -113,29 +114,52 @@ def GenPosition(nombre,rayon,methode):
             T.append(rd.random(3)*2*rayon-rayon)
         return np.array(T)
 
-    if methode=="Solide2D":
 
-        for i in np.arange(-rayon,rayon,2**(1/6)):
-                for j in np.arange(-rayon,rayon,2**(1/6)):
+    if methode=="Solide2D":
+        dist=2**(1/6)
+        alt=0
+        for i in np.arange(-rayon,rayon,dist):
+                for j in np.arange(-rayon+alt*dist/2,rayon+alt*dist/2,dist):
                     ##for z in np.arange(-rayon,rayon,2**(1/6)):
                         T.append([i,j,0])
+                if alt==1:
+                    alt=0
+                else:
+                    alt=1
 
         return np.array(T), len(T)
-    
+
     if methode=="Solide3D":
-
-        for i in np.arange(-rayon,rayon,2**(1/6)):
-                for j in np.arange(-rayon,rayon,2**(1/6)):
-                    for z in np.arange(-rayon,rayon,2**(1/6)):
+        dist=2**(1/6)
+        
+        for z in np.arange(-rayon,rayon,2*dist):
+            alt=0
+            for i in np.arange(-rayon,rayon,dist):
+                for j in np.arange(-rayon+alt*dist/2,rayon+alt*dist/2,dist):
+                    ##for z in np.arange(-rayon,rayon,2**(1/6)):
                         T.append([i,j,z])
+                if alt==1:
+                    alt=0
+                else:
+                    alt=1
+            alt=1
+            for i in np.arange(-rayon,rayon,dist):
+                for j in np.arange(-rayon+alt*dist/2,rayon+alt*dist/2,dist):
+                    ##for z in np.arange(-rayon,rayon,2**(1/6)):
+                        T.append([i,j,z+dist])
+                if alt==1:
+                    alt=0
+                else:
+                    alt=1
 
-        return np.array(T), len(T)
-    
+        return np.array(T), len(T)    
+
+
     if methode=="Megalaxie":
         T.append([0,0,0])
         while(len(T)!=nombre):
             x=rd.random(2) * (2*rayon)-rayon
-            if (3 <= norme2D(x) <= rayon):
+            if (rayon/10 <= norme2D(x) <= rayon):
                 T.append([x[0],x[1],0])
         return np.array(T)
 
@@ -324,9 +348,9 @@ def Temperature(EnergieCinetique,nombreDiteration,nombre):
 #@jit(nopython=True,cache=True) 
 def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration):
     N=10
-    EnergieVoulue=10
-    coeff=1.001
-    if i%N==0 and i>=2*N and i<5*nombreDiteration/10:
+    EnergieVoulue=0
+    coeff=1.003
+    if i%N==0 and i>=2*N and i<6*nombreDiteration/10:
         EnergieMoyenne=np.mean(EnergieCinetique[i-N:i])
         if EnergieVoulue-EnergieMoyenne>0.01:
             for n in range(nombre):
@@ -379,6 +403,7 @@ def ProgrammePrincipalGravite(PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vi
                    az+=a[2]
                    EnergiePotentielle[i-1]=EnergiePotentielle[i-1]+EpotentielleGravite(a[3],Tmasse[Corps],Tmasse[CorpsAutre])
             CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,ax,ay,az,Corps,i,dt)
-            EnergieCinetique[i]=EnergieCinetique[i]+EcinetiqueGravite(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps],Tmasse[Corps])          
-            
+            EnergieCinetique[i]=EnergieCinetique[i]+EcinetiqueGravite(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps],Tmasse[Corps])  
+
+
             

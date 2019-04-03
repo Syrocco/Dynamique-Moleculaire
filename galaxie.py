@@ -4,19 +4,19 @@ import time
 #####################################################################
 ###-----------------Initialisation des paramètres-----------------###    
 #####################################################################    
-
+rd.seed(2)
 
 #Nombre de corps
-nombrePlan=35
+nombrePlan=50
 
-Tmasse=np.ones(nombrePlan)*0.00001
+Tmasse=np.ones(nombrePlan)*100 #*0.00001
 Tmasse[0]=10**7
 
 #Durée de la simulation
-temps=5
+temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.01
+dt=0.001
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -25,9 +25,8 @@ N=int(temps/dt)
 DispEne=True
 DispPression=True
 DispMomentum=True
-Animation=True
-SaveAnimation=False
-
+Animation=False
+SaveAnimation=True
 
 
 #Définition des tableaux contenant les différentes données
@@ -96,6 +95,7 @@ else:
     axes = p3.Axes3D(fig)
     for i in range(nombrePlan):
         axes.plot(TPosx[:,i],TPosy[:,i],TPosz[:,i])
+        axes.plot(TPosx[:,0],TPosy[:,0],TPosz[:,0],"ro")
 
 
 plt.show()
