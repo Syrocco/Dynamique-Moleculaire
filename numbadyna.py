@@ -6,15 +6,14 @@ import time
 ###-----------------Initialisation des paramètres-----------------###    
 #####################################################################    
 
-
 #Nombre de corps
-nombrePlan=20
+nombrePlan=50
 
 #Durée de la simulation
-temps=50
+temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.01
+dt=0.0001
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -24,7 +23,7 @@ DispEne=True
 DispPression=True
 DispMomentum=True
 Animation=True
-SaveAnimation=True
+SaveAnimation=False
 
 
 
@@ -38,15 +37,15 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=2
-VitesseInitiale=0
+TailleInitiale=4.5
+VitesseInitiale=3
 EcartType=0
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=4
+TailleBoite=5
 
 #Generation des conditions initiales
-nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Solide3D")
+nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Random")
 
 
 ############################################################
@@ -113,7 +112,7 @@ if Animation:
     axes = p3.Axes3D(fig)
     ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleBoite,axes), interval=100, save_count=int(N/10))
     if SaveAnimation:
-        ani.save('./animationTrash.mp4', fps=20,dpi=80)
+        ani.save('./animationTrash.mp4', fps=40, dpi=150)
 else:
     fig = plt.figure()
     axes = p3.Axes3D(fig)

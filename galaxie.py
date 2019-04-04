@@ -4,19 +4,19 @@ import time
 #####################################################################
 ###-----------------Initialisation des paramètres-----------------###    
 #####################################################################    
-rd.seed(2)
+
 
 #Nombre de corps
-nombrePlan=50
+nombrePlan=1000
 
-Tmasse=np.ones(nombrePlan)*100 #*0.00001
+Tmasse=np.ones(nombrePlan)*0.00000000001
 Tmasse[0]=10**7
 
 #Durée de la simulation
-temps=10
+temps=1
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.001
+dt=0.0001
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -25,7 +25,7 @@ N=int(temps/dt)
 DispEne=True
 DispPression=True
 DispMomentum=True
-Animation=False
+Animation=True
 SaveAnimation=True
 
 
@@ -45,7 +45,7 @@ EcartType=0
 
 
 #Generation des conditions initiales
-nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Megalaxie")
+nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Megalaxie",Masse=Tmasse[0])
 
 
 ############################################################
@@ -87,9 +87,9 @@ if DispEne:
 if Animation: 
     fig = plt.figure()
     axes = p3.Axes3D(fig)
-    ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleInitiale,axes), interval=100, save_count=int(N/10))
+    ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleInitiale,axes,grid=False), interval=100, save_count=int(N/10))
     if SaveAnimation:
-        ani.save('./animation.mp4', fps=20,dpi=150)
+        ani.save('./animation.mp4', fps=25,dpi=150)
 else:
     fig = plt.figure()
     axes = p3.Axes3D(fig)
