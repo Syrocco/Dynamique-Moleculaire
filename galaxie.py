@@ -7,16 +7,16 @@ import time
 
 
 #Nombre de corps
-nombrePlan=1000
+nombrePlan=4
 
-Tmasse=np.ones(nombrePlan)*0.00000000001
-Tmasse[0]=10**7
+Tmasse=np.ones(nombrePlan)
+Tmasse[0]=10**1
 
 #Durée de la simulation
-temps=1
+temps=20
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.0001
+dt=0.01
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -26,7 +26,7 @@ DispEne=True
 DispPression=True
 DispMomentum=True
 Animation=True
-SaveAnimation=True
+SaveAnimation=False
 
 
 #Définition des tableaux contenant les différentes données
@@ -39,20 +39,21 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=100
-VitesseInitiale=5
+TailleInitiale=10
+VitesseInitiale=0
 EcartType=0
 
 
 #Generation des conditions initiales
-nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Megalaxie",Masse=Tmasse[0])
+nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Cube",Masse=Tmasse[0])
+
 
 
 ############################################################
 ###-----------------Programme Principale-----------------###    
 ############################################################  
 t1=time.time()       
-ProgrammePrincipalGravite(TPosx,TPosy,TPosz,TVitx,TVity,TVitz,Epot,Ecin,Tmasse,N,nombrePlan,dt)
+TPosx,TPosy,TPosz,TVitx,TVity,TVitz=ProgrammePrincipalGravite(TPosx,TPosy,TPosz,TVitx,TVity,TVitz,Epot,Ecin,Tmasse,N,nombrePlan,dt)
 t2=time.time()
 print(t2-t1)
 
@@ -87,7 +88,7 @@ if DispEne:
 if Animation: 
     fig = plt.figure()
     axes = p3.Axes3D(fig)
-    ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleInitiale,axes,grid=False), interval=100, save_count=int(N/10))
+    ani = animation.FuncAnimation(fig, animate, fargs=(TPosx,TPosy,TPosz,TailleInitiale,axes), interval=100, save_count=int(N/10))
     if SaveAnimation:
         ani.save('./animation.mp4', fps=25,dpi=150)
 else:

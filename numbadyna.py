@@ -13,7 +13,7 @@ nombrePlan=50
 temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.0001
+dt=0.01
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -37,15 +37,15 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=4.5
-VitesseInitiale=3
+TailleInitiale=2
+VitesseInitiale=0
 EcartType=0
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=5
+TailleBoite=6
 
 #Generation des conditions initiales
-nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Random")
+nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Solide3D")
 
 
 ############################################################

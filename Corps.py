@@ -4,7 +4,7 @@ import numpy.random as rd
 import mpl_toolkits.mplot3d.axes3d as p3
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import matplotlib.animation as animation
-from numba import jit
+#from numba import jit
 
 
 
@@ -39,7 +39,7 @@ def cube(l,axes):     #fonctions prise ici: https://stackoverflow.com/questions/
 def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes,grid=True):
     i=i*10
     axes.clear()
-    axes.view_init(90, 90)
+    #axes.view_init(90, 90)
     axes.plot(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
     axes.plot(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"bo")
     
@@ -167,7 +167,7 @@ def GenPosition(nombre,rayon,methode):
 
 #La fonction attribue les positions et vitesses initiales aux corps 
                                                
-def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=10**7):
+def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=1):
     if methode=="Solide3D" or methode=="Solide2D":
         particule, nombre=GenPosition(nombre, rayon, methode)
     else:
@@ -213,13 +213,13 @@ def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=10
 
 
 #Calcul de l'acceleration
-@jit(nopython=True,cache=True)        
+#@jit(nopython=True,cache=True)        
 def CalculAcceleration(PositionX,PositionY,PositionZ,Corps,CorpsAutre,cpt):
 	d=distance(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre],PositionZ[cpt-1,Corps],PositionZ[cpt-1,CorpsAutre])
 	a=((12/d**13)-(6/d**7))
 	return a*(PositionX[cpt-1,Corps]-PositionX[cpt-1,CorpsAutre])/d, a*(PositionY[cpt-1,Corps]-PositionY[cpt-1,CorpsAutre])/d,a*(PositionZ[cpt-1,Corps]-PositionZ[cpt-1,CorpsAutre])/d, d 
 
-@jit(nopython=True,cache=True)  
+#@jit(nopython=True,cache=True)  
 def CalculAccelerationGravite(PositionX,PositionY,PositionZ,Tmasse,Corps,CorpsAutre,cpt):
     G=1
     d=distance(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre],PositionZ[cpt-1,Corps],PositionZ[cpt-1,CorpsAutre])
@@ -229,7 +229,7 @@ def CalculAccelerationGravite(PositionX,PositionY,PositionZ,Tmasse,Corps,CorpsAu
 
 
 #Calcul de la position et de la vitesse avec la méthode d'euler semi-explicite
-@jit(nopython=True,cache=True)     
+#@jit(nopython=True,cache=True)     
 def CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,AccelerationX,AccelerationY,AccelerationZ,Corps,cpt,dt):
     VitesseX[cpt,Corps]=VitesseX[cpt-1,Corps]+dt*AccelerationX
     VitesseY[cpt,Corps]=VitesseY[cpt-1,Corps]+dt*AccelerationY	
@@ -242,7 +242,7 @@ def CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
     
     
 #Teste si la particule à l'étape i se trouve dans la boite ou non 
-@jit(nopython=True,cache=True)                
+#@jit(nopython=True,cache=True)                
 def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):       
     #r la demi longueur du cube
     if PositionX[cpt,Corps]<-demiLongueur:
@@ -262,7 +262,7 @@ def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):
 
 
 #Modifie, selon le resultat de la fonction DansBoite(), la vitesse et la position de la particule à l'étape i pour simuler une collision, enregistre aussi la quantité de mouvement transmise aux parois
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def modif(info,demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,QuantDeMouv,Corps,cpt):
     if info=="no":
         return()
@@ -297,26 +297,26 @@ def modif(info,demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
         VitesseZ[cpt,Corps]=-VitesseZ[cpt,Corps]
 
         
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def distance(PositionX1,PositionX2,PositionY1,PositionY2,PositionZ1,PositionZ2):
 	return np.sqrt((PositionX1-PositionX2)**2+(PositionY1-PositionY2)**2+(PositionZ1-PositionZ2)**2)
 
 
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def Ecinetique(VitesseX,VitesseY,VitesseZ):
 	return 0.5*1*(VitesseX**2+VitesseY**2+VitesseZ**2)
 
 
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def Epotentielle(distance):
 	return 0.5*((1/distance**12)-(1/distance**6))   
 
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def EpotentielleGravite(distance,m1,m2):
     G=1
     return -0.5*G*m1*m2/distance
 
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def EcinetiqueGravite(VitesseX,VitesseY,VitesseZ,m):
 	return 0.5*m*(VitesseX**2+VitesseY**2+VitesseZ**2)
 
@@ -346,7 +346,7 @@ def Temperature(EnergieCinetique,nombreDiteration,nombre):
     return eneCinMoyenne/(1.5*kb*nombre)
 
 
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration):
     N=10
     EnergieVoulue=1
@@ -364,9 +364,60 @@ def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiterat
                 VitesseY[i,n]=VitesseY[i,n]/coeff
                 VitesseZ[i,n]=VitesseZ[i,n]/coeff
                 
+def collisions(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse,cpt):    
+    Corps=0
+    while Corps != len(Tmasse):
+        CorpsAutre=0
+        while CorpsAutre != len(Tmasse):
+            if Corps!=CorpsAutre:
+                print(distance(PositionX[cpt,Corps],PositionX[cpt,CorpsAutre],PositionY[cpt,Corps],PositionY[cpt,CorpsAutre],PositionZ[cpt,Corps],PositionZ[cpt,CorpsAutre]))
+                if distance(PositionX[cpt,Corps],PositionX[cpt,CorpsAutre],PositionY[cpt,Corps],PositionY[cpt,CorpsAutre],PositionZ[cpt,Corps],PositionZ[cpt,CorpsAutre])<=3:
+                    print(1)
+                    Tmasse[Corps]=Tmasse[Corps]+Tmasse[CorpsAutre]
+                    VitesseX[cpt,Corps]=(Tmasse[Corps]*VitesseX[cpt,Corps]+Tmasse[CorpsAutre]*VitesseX[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
+                    VitesseY[cpt,Corps]=(Tmasse[Corps]*VitesseY[cpt,Corps]+Tmasse[CorpsAutre]*VitesseY[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
+                    VitesseZ[cpt,Corps]=(Tmasse[Corps]*VitesseZ[cpt,Corps]+Tmasse[CorpsAutre]*VitesseZ[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
+                    print(2)
+                    Tmasse=np.delete(Tmasse,CorpsAutre)
+                    PositionX=np.delete(PositionX,CorpsAutre,1)
+                    PositionY=np.delete(PositionY,CorpsAutre,1)
+                    PositionZ=np.delete(PositionZ,CorpsAutre,1) 
+                    VitesseX=np.delete(VitesseX,CorpsAutre,1)
+                    VitesseY=np.delete(VitesseY,CorpsAutre,1)
+                    VitesseZ=np.delete(VitesseZ,CorpsAutre,1)
+                    print(Corps,Tmasse,PositionX)
+
+                    CorpsAutre-=1
+                    Corps-=1
+            print("ok",Tmasse)
+            CorpsAutre+=1
+        Corps+=1
+    print("OH",Tmasse)
+    return PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse
+
+
+def collisions(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse,cpt):   #I am become death, the destroyer of optimization :^)
+    for Corps in range(len(Tmasse)):
+        for CorpsAutre in range(len(Tmasse)):
+            if Corps!=CorpsAutre:              
+                if distance(PositionX[cpt,Corps],PositionX[cpt,CorpsAutre],PositionY[cpt,Corps],PositionY[cpt,CorpsAutre],PositionZ[cpt,Corps],PositionZ[cpt,CorpsAutre])<=0.5:
+                    print(1)
+                    VitesseX[cpt,Corps]=(Tmasse[Corps]*VitesseX[cpt,Corps]+Tmasse[CorpsAutre]*VitesseX[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
+                    VitesseY[cpt,Corps]=(Tmasse[Corps]*VitesseY[cpt,Corps]+Tmasse[CorpsAutre]*VitesseY[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
+                    VitesseZ[cpt,Corps]=(Tmasse[Corps]*VitesseZ[cpt,Corps]+Tmasse[CorpsAutre]*VitesseZ[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
+                    Tmasse[Corps]=Tmasse[Corps]+Tmasse[CorpsAutre]
+                    print(2)
+                    PositionX[cpt,CorpsAutre]=500*(1+cpt)+100*rd.random()
+                    PositionY[cpt,CorpsAutre]=500*(1+cpt)+100*rd.random()
+                    PositionZ[cpt,CorpsAutre]=500*(1+cpt)+100*rd.random()
+                    VitesseX[cpt,CorpsAutre]=0
+                    VitesseY[cpt,CorpsAutre]=0
+                    VitesseZ[cpt,CorpsAutre]=0
+                    print(Corps,Tmasse,PositionX)
+    return PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse
                
                 
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
 def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,QuantDeMouv,demiLongueur,nombreDiteration,nombre,dt):
     print("Début des calculs")
     for i in range(1,nombreDiteration):
@@ -387,24 +438,52 @@ def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,
             EnergieCinetique[i]=EnergieCinetique[i]+Ecinetique(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps])
             #TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration)
             
-@jit(nopython=True,cache=True) 
+#@jit(nopython=True,cache=True) 
+def ProgrammePrincipalGravite(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,Tmasse,nombreDiteration,nombre,dt):
+    print("Début des calculs")
+    for i in range(1,nombreDiteration):
+        #print(i,"/",nombreDiteration)
+        Corps=0
+        while Corps != len(Tmasse):
+            ax=0
+            ay=0
+            az=0
+            CorpsAutre=0
+            while CorpsAutre != len(Tmasse):
+                if CorpsAutre!=Corps:      
+                    a=CalculAccelerationGravite(PositionX,PositionY,PositionZ,Tmasse,Corps,CorpsAutre,i)
+                    ax+=a[0]
+                    ay+=a[1]
+                    az+=a[2]
+                    EnergiePotentielle[i-1]=EnergiePotentielle[i-1]+EpotentielleGravite(a[3],Tmasse[Corps],Tmasse[CorpsAutre])
+                CorpsAutre+=1
+            CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,ax,ay,az,Corps,i,dt)
+            EnergieCinetique[i]=EnergieCinetique[i]+EcinetiqueGravite(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps],Tmasse[Corps])
+            Corps+=1
+        PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse= collisions(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse,i)  
+    return PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ
+
 def ProgrammePrincipalGravite(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,Tmasse,nombreDiteration,nombre,dt):
     print("Début des calculs")
     for i in range(1,nombreDiteration):
         print(i,"/",nombreDiteration)
+        Corps=0
         for Corps in range(nombre):
             ax=0
             ay=0
             az=0
+            CorpsAutre=0
             for CorpsAutre in range(nombre):
-               if CorpsAutre!=Corps:      
-                   a=CalculAccelerationGravite(PositionX,PositionY,PositionZ,Tmasse,Corps,CorpsAutre,i)
-                   ax+=a[0]
-                   ay+=a[1]
-                   az+=a[2]
-                   EnergiePotentielle[i-1]=EnergiePotentielle[i-1]+EpotentielleGravite(a[3],Tmasse[Corps],Tmasse[CorpsAutre])
+                if CorpsAutre!=Corps:      
+                    a=CalculAccelerationGravite(PositionX,PositionY,PositionZ,Tmasse,Corps,CorpsAutre,i)
+                    ax+=a[0]
+                    ay+=a[1]
+                    az+=a[2]
+                    EnergiePotentielle[i-1]=EnergiePotentielle[i-1]+EpotentielleGravite(a[3],Tmasse[Corps],Tmasse[CorpsAutre])
             CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,ax,ay,az,Corps,i,dt)
-            EnergieCinetique[i]=EnergieCinetique[i]+EcinetiqueGravite(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps],Tmasse[Corps])  
+            EnergieCinetique[i]=EnergieCinetique[i]+EcinetiqueGravite(VitesseX[i,Corps],VitesseY[i,Corps],VitesseZ[i,Corps],Tmasse[Corps])
+        PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse= collisions(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse,i)  
+    return PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ
 
 
             
