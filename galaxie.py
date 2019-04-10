@@ -2,21 +2,21 @@ from Corps import *
 import time
 
 #####################################################################
-###-----------------Initialisation des paramètres-----------------###    
-#####################################################################    
+###-----------------Initialisation des paramètres-----------------###
+#####################################################################
 
 
 #Nombre de corps
-nombrePlan=200
+nombrePlan=100
 
-Tmasse=np.ones(nombrePlan)*0.1
+Tmasse=np.ones(nombrePlan)*0.0000000000001
 Tmasse[0]=10**4
 
 #Durée de la simulation
 temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.005
+dt=0.01
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -26,7 +26,7 @@ DispEne=True
 DispPression=True
 DispMomentum=True
 Animation=True
-SaveAnimation=True
+SaveAnimation=False
 
 
 #Définition des tableaux contenant les différentes données
@@ -39,7 +39,7 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=50
+TailleInitiale=15
 VitesseInitiale=0
 EcartType=0
 
@@ -63,16 +63,16 @@ dt=0.003
 temps=1898 secondes
 """
 ############################################################
-###-----------------Programme Principale-----------------###    
-############################################################  
-t1=time.time()       
-ProgrammePrincipalGravite(TPosx,TPosy,TPosz,TVitx,TVity,TVitz,Epot,Ecin,Tmasse,N,nombrePlan,dt,s)
+###-----------------Programme Principale-----------------###
+############################################################
+t1=time.time()
+ProgrammePrincipalGravite(TPosx,TPosy,TVitx,TVity,Epot,Ecin,Tmasse,N,nombrePlan,dt,s,Tmasse[1])
 t2=time.time()
 print(t2-t1)
 
 
 
-#Calcul de l'énergie totale     
+#Calcul de l'énergie totale
 Etot=Epot[1:-1]+Ecin[1:-1]
 
 
@@ -80,11 +80,11 @@ Etot=Epot[1:-1]+Ecin[1:-1]
 
 
 
-        
+
 ###########################################################
-###-----------------Affichage Graphique-----------------###    
-###########################################################   
-       
+###-----------------Affichage Graphique-----------------###
+###########################################################
+
 
 if DispEne:
     plt.figure()
@@ -95,18 +95,19 @@ if DispEne:
     plt.ylabel("Energie")
     plt.title("Graphe de l'evolution de l'énergie au cours du temps")
     plt.legend()
+"""
+fig = plt.figure()
+axes = p3.Axes3D(fig)
+"""
 
-    
 
-if Animation: 
-    fig = plt.figure()
-    axes = p3.Axes3D(fig)
-    ani = animation.FuncAnimation(fig, animate2D, fargs=(TPosx,TPosy,TPosz,TailleInitiale,axes,s), interval=100, save_count=int(N/10))
+fig = plt.figure()
+axes = plt.axes()
+if Animation:
+    ani = animation.FuncAnimation(fig, animate2D, fargs=(TPosx,TPosy,TailleInitiale,axes,s,Tmasse[1]), interval=100, save_count=int(N/10))
     if SaveAnimation:
         ani.save('./animationTest.mp4', fps=25,dpi=150)
 else:
-    fig = plt.figure()
-    axes = p3.Axes3D(fig)
     for i in range(nombrePlan):
         axes.plot(TPosx[:,i],TPosy[:,i],TPosz[:,i])
         axes.plot(TPosx[:,0],TPosy[:,0],TPosz[:,0],"ro")
