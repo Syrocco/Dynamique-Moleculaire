@@ -7,16 +7,16 @@ import time
 
 
 #Nombre de corps
-nombrePlan=5000
+nombrePlan=200
 
 Tmasse=np.ones(nombrePlan)*0.1
 Tmasse[0]=10**4
 
 #Durée de la simulation
-temps=30
+temps=10
 
 #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.01
+dt=0.005
 
 #Nombre de simulation(s)
 N=int(temps/dt)
@@ -103,7 +103,7 @@ if Animation:
     axes = p3.Axes3D(fig)
     ani = animation.FuncAnimation(fig, animate2D, fargs=(TPosx,TPosy,TPosz,TailleInitiale,axes,s), interval=100, save_count=int(N/10))
     if SaveAnimation:
-        ani.save('./animation.mp4', fps=25,dpi=150)
+        ani.save('./animationTest.mp4', fps=25,dpi=150)
 else:
     fig = plt.figure()
     axes = p3.Axes3D(fig)

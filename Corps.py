@@ -36,25 +36,25 @@ def cube(l,axes):     #fonctions prise ici: https://stackoverflow.com/questions/
 
 
 
-def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes,s,grid=True):
+def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes):
     i=i*10
     axes.clear()
-    #axes.view_init(90, 90)
+    axes.view_init(90, 90)
     axes.scatter(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
     axes.scatter(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"bo")
     
-    if grid:
-        cube(demiLongueur,axes)
+
+    cube(demiLongueur,axes)
     axes.set_xlim3d([-demiLongueur, demiLongueur])
 
     axes.set_ylim3d([-demiLongueur, demiLongueur])
 
     axes.set_zlim3d([-demiLongueur, demiLongueur])
 
-def animate2D(i,PositionX,PositionY,PositionZ,demiLongueur,axes,s,grid=True):
+def animate2D(i,PositionX,PositionY,PositionZ,demiLongueur,axes,s):
     i=i*10
     axes.clear()
-    axes.view_init(90, 90)
+    axes.view_init(30, i/30)
     axes.scatter(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],s=300,c="#FF0000")
     axes.scatter(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],s=5*s[i,1:],alpha=0.8,c="#4B0082")
     
@@ -68,7 +68,7 @@ def animate2D(i,PositionX,PositionY,PositionZ,demiLongueur,axes,s,grid=True):
 
 def getProbabilityDensityMaxwell(temp, vitMoy):
     vit=np.linspace(0, 3 * vitMoy, 1000)
-    return vit,1/(2*np.pi*temp)**(3./2.) * np.exp(-(vit-vitMoy)**2/(2*temp))
+    return vit,1/(2*np.pi*temp)**(0.5) * np.exp(-(vit-vitMoy)**2/(2*temp))
  
 
 
@@ -387,9 +387,9 @@ def collisions(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Tmasse,c
                     VitesseY[cpt,Corps]=(Tmasse[Corps]*VitesseY[cpt,Corps]+Tmasse[CorpsAutre]*VitesseY[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
                     VitesseZ[cpt,Corps]=(Tmasse[Corps]*VitesseZ[cpt,Corps]+Tmasse[CorpsAutre]*VitesseZ[cpt,CorpsAutre])/(Tmasse[Corps]+Tmasse[CorpsAutre])
                     Tmasse[Corps]=Tmasse[Corps]+Tmasse[CorpsAutre]
-                    PositionX[cpt,CorpsAutre]=500*(1+cpt)+100*rd.random()
-                    PositionY[cpt,CorpsAutre]=500*(1+cpt)+100*rd.random()
-                    PositionZ[cpt,CorpsAutre]=500*(1+cpt)+100*rd.random()
+                    PositionX[cpt,CorpsAutre]=500*(1+cpt)+100*(1+rd.random())
+                    PositionY[cpt,CorpsAutre]=500*(1+cpt)+100*(1+rd.random())
+                    PositionZ[cpt,CorpsAutre]=500*(1+cpt)+100*(1+rd.random())
                     VitesseX[cpt,CorpsAutre]=0
                     VitesseY[cpt,CorpsAutre]=0
                     VitesseZ[cpt,CorpsAutre]=0
