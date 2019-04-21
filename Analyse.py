@@ -6,48 +6,62 @@ import time
 TabTemp=[]
 TabPres=[]
 
-for loop in range(50):
+for loop in range(10):
     print(loop)
-    nombrePlan=30
+    #Nombre de corps
+    nombrePlan=100
     
-    temps=150
+    #Durée de la simulation
+    temps=0.1
     
-    dt=0.01
+    #Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
+    dt=0.00001
     
+    #Nombre de simulation(s)
     N=int(temps/dt)
     
+    #Options graphiques
+    DispEne=True
+    DispPression=True
+    DispMomentum=True
+    Animation=True
+    SaveAnimation=False
     
+    
+    
+    #Définition des tableaux contenant les différentes données
     ttab=np.arange(dt,temps,dt)
     
-    TPosx=np.zeros((N,nombrePlan))
-    TPosy=np.zeros((N,nombrePlan))
-    TPosz=np.zeros((N,nombrePlan))
-    TVitx=np.zeros((N,nombrePlan))
-    TVity=np.zeros((N,nombrePlan))
-    TVitz=np.zeros((N,nombrePlan))
-    
+    #Energie et quantité de mouvement
     Epot=np.zeros(N)
     Ecin=np.zeros(N)
-    Moment=np.zeros(N) 
-    TailleInitiale=2.5
-    VitesseInitiale=0.01+0.1*loop
-    EcartType=0
+    Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur absolue puisqu'elle ne sert qu'à trouver une pression
     
-    TailleBoite=3
     
-    AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,TPosx,TPosy,TPosz,TVitx,TVity,TVitz,nombrePlan)
+    #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
+    TailleInitiale=0.1
+    VitesseInitiale=0+10*loop
+    EcartType=0.5
     
-      
-              
+    #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
+    TailleBoite=0.11
+
+    #Generation des conditions initiales
+    nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Solide3D")
+    
+    
+    ############################################################
+    ###-----------------Programme Principale-----------------###
+    ############################################################
+    
     ProgrammePrincipal(TPosx,TPosy,TPosz,TVitx,TVity,TVitz,Epot,Ecin,Moment,TailleBoite,N,nombrePlan,dt)
     
-    
     ttab2,Tpress,pression=Pression(Moment,TailleBoite,N,100,dt)
+    
     temperature=Temperature(Ecin,N,nombrePlan)
-    Etot=Epot[1:-1]+Ecin[1:-1]
-    if abs(Etot[-2]-Etot[2])<5:
-        TabPres.append(pression)
-        TabTemp.append(temperature)
+
+    TabPres.append(pression)
+    TabTemp.append(temperature)
 TabPres=np.array(TabPres)
 TabTemp=np.array(TabTemp)   
     

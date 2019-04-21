@@ -4,7 +4,7 @@ import numpy.random as rd
 import mpl_toolkits.mplot3d.axes3d as p3
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import matplotlib.animation as animation
-#from numba import jit
+from numba import jit
 
 
 
@@ -26,35 +26,32 @@ def normeCarree(Vec3D):
 def normeCarree2D(Vec2D):
     return Vec2D[0]**2+Vec2D[1]**2
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def distance(PositionX1,PositionX2,PositionY1,PositionY2,PositionZ1,PositionZ2):
 	return np.sqrt((PositionX1-PositionX2)**2+(PositionY1-PositionY2)**2+(PositionZ1-PositionZ2)**2)
 
+
+@jit(nopython=True,cache=True)
 def distance2D(PositionX1,PositionX2,PositionY1,PositionY2):
 	return np.sqrt((PositionX1-PositionX2)**2+(PositionY1-PositionY2)**2)
 
-def calculIntegral(f,a,b,n,temperature, vitMoy):
-
-	N=np.arange(a,b+(b-a)/n,(b-a)/n)
-	integrale=0
-	for i in N[:-1]:
-		integrale+=((b-a)/n)*f(i,temperature, vitMoy)+(((f(i+(b-a)/n,temperature, vitMoy)-f(i,temperature, vitMoy))*(b-a)/n))/2
-	return integrale
 
 
 ####################################################################
 ###-----------------Fonctions: Conditions initiales--------------###
 ####################################################################
 
-#Avec la vitesse/température T et l'écart type E, la fonction renvoie UNE vitesse prise dans une gaussienne
-def GenVitesse(T,E):
+
+
+#Avec la vitesse mu et l'écart type sigma, la fonction renvoie UNE vitesse prise dans une gaussienne
+def GenVitesse(mu,sigma):
     vit_xyz=np.zeros(3)
-    if (T == 0 and E == 0):
+    if (mu == 0 and sigma == 0):
         return np.array(vit_xyz)
 
     for i in range(3):
         vit_xyz[i]=rd.random()
-    NormEtVit=norme(vit_xyz)/rd.normal(T,E)   #constante permettant de normer vit_xyz pour ensuite lui donner une norme prise au hasard dans une gaussienne
+    NormEtVit=norme(vit_xyz)/rd.normal(mu,sigma)   #constante permettant de normer vit_xyz pour ensuite lui donner une norme prise au hasard dans une gaussienne
 
     for i in range(3):
         signe=rd.random()
@@ -65,7 +62,11 @@ def GenVitesse(T,E):
 
     return np.array(vit_xyz)
 
-#La fonction renvoie la distribution des corps selon la demi-longueur envoyée
+
+
+
+
+#La fonction renvoie la distribution des corps 
 def GenPosition(nombre,rayon,methode):
     T=[]
 
@@ -80,16 +81,18 @@ def GenPosition(nombre,rayon,methode):
         #rd.seed(1)
         return np.array(T[:nombre])
 
-
+   
     if methode=="Random":
         T.append(rd.random(3)*2*rayon-rayon)
-        i=0
         while len(T)!=nombre:
             a=rd.random(3)*2*rayon-rayon
-            if distance(T[i][0],a[0],T[i][1],a[1],T[i][2],a[2])>(2**(1/6))/1.3:
-                T.append(a)
-            i+=1
+            for i in range(len(T)):             
+                if distance(np.array(T)[i,0],a[0],np.array(T)[i,1],a[1],np.array(T)[i,2],a[2])<(2**(1/6))/1.3:
+                    break
+                if i==len(T)-1:
+                    T.append(a)
         return np.array(T)
+            
 
 
     if methode=="Solide2D":
@@ -190,13 +193,13 @@ def AttributionInitiale(rayon,Vitesse,Ecart,nombre,N,methode="Cube",G=1,Masse=1)
 #-------------Resolution d'equa diff-------------#
 
 #Calcul de l'acceleration
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def CalculAcceleration(PositionX,PositionY,PositionZ,Corps,CorpsAutre,cpt):
     d=distance(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre],PositionZ[cpt-1,Corps],PositionZ[cpt-1,CorpsAutre])
     a=((12/d**13)-(6/d**7))
     return a*(PositionX[cpt-1,Corps]-PositionX[cpt-1,CorpsAutre])/d, a*(PositionY[cpt-1,Corps]-PositionY[cpt-1,CorpsAutre])/d,a*(PositionZ[cpt-1,Corps]-PositionZ[cpt-1,CorpsAutre])/d, d
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def CalculAccelerationGravite(PositionX,PositionY,Tmasse,Corps,CorpsAutre,cpt):
     d=distance2D(PositionX[cpt-1,Corps],PositionX[cpt-1,CorpsAutre],PositionY[cpt-1,Corps],PositionY[cpt-1,CorpsAutre])
     a=-Tmasse[CorpsAutre]/d**2
@@ -206,7 +209,7 @@ def CalculAccelerationGravite(PositionX,PositionY,Tmasse,Corps,CorpsAutre,cpt):
 
 
 #Calcul de la position et de la vitesse avec la méthode d'euler semi-explicite
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,AccelerationX,AccelerationY,AccelerationZ,Corps,cpt,dt):
     VitesseX[cpt,Corps]=VitesseX[cpt-1,Corps]+dt*AccelerationX
     VitesseY[cpt,Corps]=VitesseY[cpt-1,Corps]+dt*AccelerationY
@@ -215,6 +218,7 @@ def CalculVitesseEtPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
     PositionY[cpt,Corps]=PositionY[cpt-1,Corps]+dt*VitesseY[cpt,Corps]
     PositionZ[cpt,Corps]=PositionZ[cpt-1,Corps]+dt*VitesseZ[cpt,Corps]
 
+@jit(nopython=True,cache=True)
 def CalculVitesseEtPositionGravite(PositionX,PositionY,VitesseX,VitesseY,AccelerationX,AccelerationY,Corps,cpt,dt):
     VitesseX[cpt,Corps]=VitesseX[cpt-1,Corps]+dt*AccelerationX
     VitesseY[cpt,Corps]=VitesseY[cpt-1,Corps]+dt*AccelerationY
@@ -245,13 +249,14 @@ def PosVit_t1(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,nombre,dt
         PositionZ[1,planete]=PositionZ[0,planete]+dt*VitesseZ[1,planete]
 
 #Calcul de la position et de la vitesse avec la méthode de verlet (pas spécialement adaptée pour les collisions, je ne l'utilise pas)
+@jit(nopython=True,cache=True)
 def VerletPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,AccelerationX,AccelerationY,AccelerationZ,Corps,cpt,dt):
     PositionX[cpt+1,Corps]=2*PositionX[cpt,Corps]-PositionX[cpt-1,Corps]+AccelerationX*dt**2
     PositionY[cpt+1,Corps]=2*PositionY[cpt,Corps]-PositionY[cpt-1,Corps]+AccelerationY*dt**2
     PositionZ[cpt+1,Corps]=2*PositionZ[cpt,Corps]-PositionZ[cpt-1,Corps]+AccelerationZ*dt**2
-    VitesseX[cpt,planete]=(PositionX[cpt+1,planete]-PositionX[cpt-1,Corps])/(2*dt)
-    VitesseY[cpt,planete]=(PositionY[cpt+1,planete]-PositionY[cpt-1,Corps])/(2*dt)
-    VitesseZ[cpt,planete]=(PositionZ[cpt+1,planete]-PositionZ[cpt-1,Corps])/(2*dt)
+    VitesseX[cpt,Corps]=(PositionX[cpt+1,Corps]-PositionX[cpt-1,Corps])/(2*dt)
+    VitesseY[cpt,Corps]=(PositionY[cpt+1,Corps]-PositionY[cpt-1,Corps])/(2*dt)
+    VitesseZ[cpt,Corps]=(PositionZ[cpt+1,Corps]-PositionZ[cpt-1,Corps])/(2*dt)
 
 
 
@@ -260,7 +265,7 @@ def VerletPosition(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,Acce
 
 
 #Teste si la particule à l'étape i se trouve dans la boite ou non
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):
     #r la demi longueur du cube
     if PositionX[cpt,Corps]<-demiLongueur:
@@ -280,7 +285,7 @@ def DansBoite(demiLongueur,PositionX,PositionY,PositionZ, Corps, cpt):
 
 
 #Modifie, selon le resultat de la fonction DansBoite(), la vitesse et la position de la particule à l'étape i pour simuler une collision, enregistre aussi la quantité de mouvement transmise aux parois
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def modif(info,demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,QuantDeMouv,Corps,cpt):
     if info=="no":
         return()
@@ -316,25 +321,24 @@ def modif(info,demiLongueur,PositionX,PositionY,PositionZ,VitesseX,VitesseY,Vite
         VitesseZ[cpt,Corps]=-VitesseZ[cpt,Corps]
 
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def Ecinetique(VitesseX,VitesseY,VitesseZ):
 	return 0.5*1*(VitesseX**2+VitesseY**2+VitesseZ**2)
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def EcinetiqueGravite(VitesseX,VitesseY,m):
 	return 0.5*m*(VitesseX**2+VitesseY**2)
 
-
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def Epotentielle(distance):
 	return 0.5*((1/distance**12)-(1/distance**6))
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def EpotentielleGravite(distance,m1,m2):
     return -0.5*m1*m2/distance
 
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration):
     N=10
     EnergieVoulue=1
@@ -352,7 +356,7 @@ def TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiterat
                 VitesseY[i,n]=VitesseY[i,n]/coeff
                 VitesseZ[i,n]=VitesseZ[i,n]/coeff
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def collisions(PositionX,PositionY,VitesseX,VitesseY,Tmasse,cpt,MasseNormee):   #I am become death, the destroyer of optimization :^)
     for Corps in range(len(Tmasse)):
         for CorpsAutre in range(len(Tmasse)):
@@ -367,7 +371,7 @@ def collisions(PositionX,PositionY,VitesseX,VitesseY,Tmasse,cpt,MasseNormee):   
                     VitesseY[cpt,CorpsAutre]=0
 
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,EnergiePotentielle,EnergieCinetique,QuantDeMouv,demiLongueur,nombreDiteration,nombre,dt):
     print("Début des calculs")
     for i in range(1,nombreDiteration):
@@ -389,7 +393,7 @@ def ProgrammePrincipal(PositionX,PositionY,PositionZ,VitesseX,VitesseY,VitesseZ,
             #TempModif(EnergieCinetique,VitesseX,VitesseY,VitesseZ,i,nombre,nombreDiteration)
 
 
-#@jit(nopython=True,cache=True)
+@jit(nopython=True,cache=True)
 def ProgrammePrincipalGravite(PositionX,PositionY,VitesseX,VitesseY,EnergiePotentielle,EnergieCinetique,Tmasse,nombreDiteration,nombre,dt,s,MasseNormee):
     print("Début des calculs")
     for i in range(1,nombreDiteration):
@@ -441,8 +445,9 @@ def Pression(QuantDeMouv,demiLongueur,nombreDiteration,pas,dt):
     return ttab2,pression,pressionMoyenne
 
 
-def Maxwell(x,temp,vitMoy):
-    return 10*1/(2*np.pi*temp)**(1.5)*x**2* np.exp(-(x)**2/(2*temp))
+
+def Maxwell(x,temp):
+    return np.sqrt(2/np.pi)*(1/temp)**(3/2)*x**2* np.exp(-(x)**2/(2*temp))
 
 
 #-------------Affichage graphique-------------#
@@ -451,9 +456,9 @@ def Maxwell(x,temp,vitMoy):
 def animate(i,PositionX,PositionY,PositionZ,demiLongueur,axes):
     i=i*10
     axes.clear()
-    axes.view_init(30, i/30)
-    axes.scatter(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
+    axes.view_init(15, i/30)
     axes.scatter(PositionX[i,1:],PositionY[i,1:],PositionZ[i,1:],"bo")
+    #axes.scatter(PositionX[i,:1],PositionY[i,:1],PositionZ[i,:1],"ro")
 
 
     cube(demiLongueur,axes)

@@ -2,33 +2,33 @@
 from Corps import *
 import time
 
-#####################################################################
-###-----------------Initialisation des paramètres-----------------###
-#####################################################################
+#############################################################################################
+###-----------------Initialisation des paramètres et Programme Principal-----------------###
+#############################################################################################
 
 #Nombre de corps
-nombrePlan=10
+nombrePlan=100
 
 #Durée de la simulation
-temps=1
+temps=10
 
-#Intervalle de temps (Il vaut mieux garder un multiple de 10 sinon, le ttab peut avoir des problemes de dimensionnement (N+1 colonnes plutot que N))
-dt=0.005
-
+dt=0.01
 #Nombre de simulation(s)
 N=int(temps/dt)
 
-#Options graphiques
+#Options graphiques et sauvegarde
 DispEne=True
 DispPression=True
 DispMomentum=True
+DispDistributionVit=True
 Animation=True
 SaveAnimation=False
+SaveTab=True
 
 
 
 #Définition des tableaux contenant les différentes données
-ttab=np.arange(dt,temps,dt)
+ttab=np.linspace(dt,temps,N)
 
 #Energie et quantité de mouvement
 Epot=np.zeros(N)
@@ -37,59 +37,64 @@ Moment=np.zeros(N)  #Quantité de mouvement transmise aux parois, en valeur abso
 
 
 #Demi longueur du cube dans lequel on place les corps et leurs vitesses + ecart type de la gaussienne en t=0
-TailleInitiale=3.5
-VitesseInitiale=0
-EcartType=4
+TailleInitiale=4
+VitesseInitiale=5
+EcartType=0
 
 #Taille de la boite dans laquelle se passe les collisions (à garder STRICTEMENT inférieur à: TailleInitiale)
-TailleBoite=3
+TailleBoite=5
 
 #Generation des conditions initiales
-nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Random")
+nombrePlan,TPosx,TPosy,TPosz,TVitx,TVity,TVitz=AttributionInitiale(TailleInitiale,VitesseInitiale,EcartType,nombrePlan,N,methode="Cube")
 
 
-############################################################
-###-----------------Programme Principale-----------------###
-############################################################
 
 ProgrammePrincipal(TPosx,TPosy,TPosz,TVitx,TVity,TVitz,Epot,Ecin,Moment,TailleBoite,N,nombrePlan,dt)
 
+
 ttab2,Tpress,pression=Pression(Moment,TailleBoite,N,100,dt)
-
 temperature=Temperature(Ecin,N,nombrePlan)
-
-
-
-#Calcul de l'énergie totale
 Etot=Epot[1:-1]+Ecin[1:-1]
 
-TVit = np.zeros((nombrePlan))
-for i in range(nombrePlan):
-    TVit[i] = norme(np.array([TVitx[-1,i], TVity[-1,i], TVitz[-1,i]]))
-vitMoy=np.mean(TVit)
-vit=np.linspace(0, 10 * vitMoy, 1000)
 
-distrib=Maxwell(vit,temperature, vitMoy)
-normalisateur=calculIntegral(Maxwell,0,10*vitMoy,10000,temperature, vitMoy)
-
-plt.figure()
-plt.hist(TVit, bins=int(nombrePlan/5),density=True)
-
-plt.plot(vit,distrib/normalisateur)
-
-
-
-
-###########################################################
-###-----------------Affichage Graphique-----------------###
-###########################################################
+#########################################################################
+###-----------------Affichage Graphique et sauvegarde-----------------###
+#########################################################################
 print("pression=", pression,"temperature=",temperature )
+
+if SaveTab:
+    Donnees=np.zeros(N-2,dtype=[('ttab',float),('Epot',float),('Ecin',float),('Moment',float)])
+    Donnees['ttab']=ttab[1:-1]
+    Donnees['Epot']=Epot[1:-1]
+    Donnees['Ecin']=Ecin[1:-1]
+    Donnees['Moment']=Moment[1:-1]
+    information='Taille initiale='+str(TailleInitiale)+'    Vitesse initiale='+str(VitesseInitiale)+' et '+str(EcartType)+'    Taille boîte='+str(TailleBoite)+'    dt='+str(dt)+'    nombre='+str(nombrePlan)
+    nom='nb='+str(nombrePlan)+',vit='+str(VitesseInitiale)+',TailleBoite='+str(TailleBoite)+'.txt'
+    np.savetxt(nom,Donnees,header=information)
+   
+    
+
+
+if DispDistributionVit:
+    TVit = np.zeros((nombrePlan))
+    for i in range(nombrePlan):
+        TVit[i] = norme(np.array([TVitx[-1,i], TVity[-1,i], TVitz[-1,i]]))
+    vitMoy=np.mean(TVit)
+    vit=np.linspace(0, 3 * vitMoy, 1000)
+    
+    distrib=Maxwell(vit,temperature)
+
+    plt.figure()
+    plt.hist(TVit, bins=int(nombrePlan/10),density=True)
+    
+    plt.plot(vit,distrib)
+
 
 if DispEne:
     plt.figure()
-    plt.plot(ttab[:-1],Epot[1:-1],label="Epot")
-    plt.plot(ttab[:-1],Ecin[1:-1],label="Ecin")
-    plt.plot(ttab[:-1],Etot,label="Etot")
+    plt.plot(ttab[1:-1],Epot[1:-1],label="Epot")
+    plt.plot(ttab[1:-1],Ecin[1:-1],label="Ecin")
+    plt.plot(ttab[1:-1],Etot,label="Etot")
     plt.xlabel("Temps")
     plt.ylabel("Energie")
     plt.title("Graphe de l'evolution de l'énergie au cours du temps")
@@ -103,7 +108,7 @@ if DispPression:
     plt.title("Graphe de l'evolution de la pression dans la boîte au cours du temps")
 if DispMomentum:
     plt.figure()
-    plt.plot(ttab[:-1],Moment[1:-1])
+    plt.plot(ttab[1:-1],Moment[1:-1])
     plt.xlabel("Temps")
     plt.ylabel("Quantité de mouvement")
     plt.title("Graphe de l'evolution de la pression dans la boîte au cours du temps")
